@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KOT Tracker">
+<meta name="theme-color" content="#639922">
+<title>KOT Tracker</title>
+<style>
+:root{
+  --g:#639922;--gl:#EAF3DE;--gd:#27500A;--gm:#3B6D11;
+  --b:#185FA5;--bl:#E6F1FB;--bb:#B5D4F4;
+  --ab:#FAEEDA;--at:#633806;--abr:#BA7517;
+  --bg:#fff;--bg2:#f5f5f2;--bg3:#eeede8;
+  --tx:#1a1a1a;--tx2:#666;--tx3:#999;
+  --br:rgba(0,0,0,0.12);--br2:rgba(0,0,0,0.22);
+  --r:8px;--rl:12px;
+  --safe-top:env(safe-area-inset-top);
+  --safe-bot:env(safe-area-inset-bottom);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+    --tx:#f0f0ee;--tx2:#aaa;--tx3:#666;
+    --br:rgba(255,255,255,0.12);--br2:rgba(255,255,255,0.22);
+    --gl:#1a2e0a;--gd:#97C459;--gm:#C0DD97;
+    --bl:#0c1e35;--bb:#185FA5;
+    --ab:#2a1e08;--at:#FAC775;--abr:#854F0B;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--tx);min-height:100vh;padding-bottom:calc(1rem + var(--safe-bot))}
+.container{max-width:720px;margin:0 auto;padding:0 1rem}
+
+/* iOS install banner */
+#ios-banner{display:none;position:sticky;top:0;z-index:100;background:var(--g);color:#fff;padding:12px 16px;padding-top:calc(12px + var(--safe-top));flex-direction:column;gap:6px}
+#ios-banner.show{display:flex}
+.ios-banner-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ios-banner-title{font-size:14px;font-weight:600}
+.ios-banner-sub{font-size:12px;opacity:.85;line-height:1.4}
+.ios-banner-steps{font-size:12px;opacity:.9;line-height:1.6;background:rgba(0,0,0,0.15);border-radius:6px;padding:8px 10px;margin-top:2px}
+.ios-banner-close{background:rgba(0,0,0,0.2);border:none;color:#fff;border-radius:99px;width:26px;height:26px;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1}
+
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0 1rem;flex-wrap:wrap;gap:12px}
+h1{font-size:20px;font-weight:700}
+.subtitle{font-size:13px;color:var(--tx2);margin-top:2px}
+.reset-btn{font-size:12px;padding:7px 14px;border:1px solid var(--br2);border-radius:var(--r);background:var(--bg2);cursor:pointer;color:var(--tx2)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg2);border-radius:var(--r);padding:12px;text-align:center}
+.sn{font-size:22px;font-weight:700}
+.sl{font-size:11px;color:var(--tx2);margin-top:2px}
+.pw{background:var(--bg2);border-radius:99px;height:6px;margin-bottom:1.5rem;overflow:hidden}
+.pb{height:6px;border-radius:99px;background:var(--g);transition:width .3s}
+.sec-lbl{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+
+.wg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:1.5rem}
+.wb{background:var(--bg2);border:1px solid var(--br);border-radius:var(--r);padding:8px 4px;text-align:center;cursor:pointer;font-size:12px;color:var(--tx2)}
+.wb.active{border-color:var(--b);color:var(--b);background:var(--bl)}
+.wb.wdone{background:var(--gl);border-color:var(--g);color:var(--gd)}
+.wl{font-weight:700;font-size:13px;margin-bottom:3px}
+.pips{display:flex;justify-content:center;gap:3px;margin-top:4px}
+.pip{width:6px;height:6px;border-radius:50%;background:var(--br2)}
+.pip.done{background:var(--g)}
+
+.dtabs{display:flex;gap:8px;margin-bottom:1rem}
+.dt{flex:1;padding:10px;border:1px solid var(--br);border-radius:var(--r);cursor:pointer;font-size:13px;text-align:center;background:var(--bg2);color:var(--tx2)}
+.dt.active{background:var(--bl);border-color:var(--b);color:var(--b);font-weight:700}
+.dt.ddone{background:var(--gl);border-color:var(--g);color:var(--gd)}
+
+.ex{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);margin-bottom:8px;overflow:hidden}
+.ex.edone{background:var(--gl);border-color:var(--g)}
+.ex.eopt{border-style:dashed}
+.exh{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.exck{width:26px;height:26px;border-radius:50%;border:2px solid var(--br2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:var(--tx2)}
+.ex.edone .exck{background:var(--g);border-color:var(--g);color:#fff}
+.exb{flex:1;min-width:0}
+.exname{font-size:15px;font-weight:600}
+.ex.edone .exname{color:var(--gd)}
+.exdet{font-size:12px;color:var(--tx2);margin-top:2px}
+.ex.edone .exdet{color:var(--gm)}
+.exr{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--bg2);color:var(--tx2);border:1px solid var(--br)}
+.optb{background:var(--ab);color:var(--at);border-color:var(--abr)}
+.arr{font-size:18px;color:var(--tx3);transition:transform .2s;display:inline-block;line-height:1}
+.ex.open .arr{transform:rotate(180deg)}
+.panel{border-top:1px solid var(--br);padding:14px 16px}
+
+.instrbox{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.ititle{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.steps{list-style:none;padding:0}
+.steps li{font-size:13px;color:var(--tx);padding:5px 0 5px 26px;position:relative;line-height:1.55;border-bottom:1px solid var(--br)}
+.steps li:last-child{border-bottom:none}
+.steps li::before{content:attr(data-n);position:absolute;left:0;font-weight:700;color:var(--tx3);font-size:12px;top:6px}
+.tip{font-size:12px;color:var(--tx2);margin-top:10px;padding-top:10px;border-top:1px solid var(--br);font-style:italic;line-height:1.5}
+
+.ex-link{font-size:12px;color:var(--b);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:8px 14px;border:1px solid var(--bb);border-radius:var(--r);background:var(--bl)}
+
+.srow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.sbtn{padding:7px 14px;border-radius:99px;border:1px solid var(--br);background:var(--bg2);font-size:13px;cursor:pointer;color:var(--tx2)}
+.sbtn.sdone{background:var(--g);border-color:var(--g);color:#fff}
+
+.timer-section{margin-bottom:12px}
+.timer-lbl{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.trow{display:flex;align-items:center;gap:12px}
+.tring{width:56px;height:56px;flex-shrink:0}
+.tring svg{transform:rotate(-90deg);display:block}
+.tdisp{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;min-width:85px;color:var(--tx)}
+.tdisp.run{color:var(--b)}
+.tdisp.fin{color:var(--g)}
+.tctrl{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{display:flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid var(--br2);border-radius:var(--r);background:var(--bg2);cursor:pointer;font-size:13px;color:var(--tx)}
+.tbtn.tgo{background:var(--b);border-color:var(--b);color:#fff}
+
+.bbar{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--tx2);border:1px solid var(--br)}
+.bbar-txt{flex:1}
+
+.mkbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r);border:1px solid var(--br2);background:var(--bg2);font-size:13px;cursor:pointer;color:var(--tx)}
+.mkbtn.mkon{background:var(--gl);border-color:var(--g);color:var(--gd)}
+
+.fin-btn{width:100%;padding:14px;border-radius:var(--rl);border:none;background:var(--g);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:1rem;margin-bottom:1rem}
+.fin-btn:disabled{background:var(--bg2);color:var(--tx3);cursor:default}
+</style>
+</head>
+<body>
+
+<!-- iOS install banner -->
+<div id="ios-banner">
+  <div class="ios-banner-row">
+    <div>
+      <div class="ios-banner-title">📲 Install on your home screen</div>
+      <div class="ios-banner-sub">Get the full app experience on iPhone</div>
+    </div>
+    <button class="ios-banner-close" onclick="dismissBanner()" aria-label="Close">✕</button>
+  </div>
+  <div class="ios-banner-steps">
+    1. Tap the <strong>Share</strong> button at the bottom of Safari (the box with an arrow)<br>
+    2. Scroll down and tap <strong>"Add to Home Screen"</strong><br>
+    3. Tap <strong>"Add"</strong> — done! Opens like a real app.
+  </div>
+</div>
+
+<div class="container">
+  <div class="top-bar">
+    <div>
+      <h1>Knees over toes</h1>
+      <div class="subtitle">12-week program &middot; 3&times;/week</div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">&#8635; Reset</button>
+  </div>
+  <div class="stats" id="SA"></div>
+  <div class="pw"><div class="pb" id="PB" style="width:0%"></div></div>
+  <div class="sec-lbl">Select week</div>
+  <div class="wg" id="WG"></div>
+  <div class="dtabs" id="DT"></div>
+  <div id="WA"></div>
+</div>
+
+<script>
+const SK='kot_v3';
+const WEEKS=12;
+
+const EX=[
+  {id:'tib1',name:'Tibialis raise',detail:'25 reps &middot; no break',sets:1,timer:0,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=gNS_QjGAs_k',
+   steps:['Stand with your back against a wall. Walk your feet out 30&ndash;40cm so your heels are on the ground.','Keep legs straight and lift the fronts of both feet as high as you can &mdash; toes toward your shins.','Lower slowly and controlled back to the floor.','Perform 25 continuous reps with no rest. Feel the burn in the shin muscle (tibialis anterior).','Breathe steadily and keep the movement controlled throughout.'],
+   tip:'The cornerstone of knee pain prevention. The tibialis anterior is almost always neglected &mdash; this fixes that.'},
+  {id:'fhl',name:'FHL calf raise',detail:'25 reps &middot; no break',sets:1,timer:0,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=BWedccP0o_U&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=12',
+   steps:['Stand on the edge of a step, balls of feet on the edge, heels hanging off.','Keep toes pointed STRAIGHT ahead &mdash; not turned out.','Lower heels slowly below step level for a deep Achilles stretch.','Drive up onto toes as high as possible, squeeze at the top.','25 reps with a slow, controlled descent every time.'],
+   tip:'Pointing toes straight (not out) targets the FHL &mdash; critical for ankle and knee stability.'},
+  {id:'tib2',name:'Tibialis raise (again)',detail:'25 reps &middot; no break',sets:1,timer:0,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=gNS_QjGAs_k',
+   steps:['Immediately after FHL calf raises, go straight into tibialis raises &mdash; no rest.','Back against wall, heels on ground, feet walked out.','Lift fronts of both feet high &mdash; toes to shins.','Lower slowly. 25 reps.','Back-to-back superset trains opposing muscles for balanced lower leg strength.'],
+   tip:'The FHL raise into tib raise combo is a KOT signature. Builds resilient ankles and protects the knee from both sides.'},
+  {id:'kot_calf',name:'KOT calf raise',detail:'25 reps &middot; no break',sets:1,timer:0,brk:0,opt:false,
+   url:'https://youtu.be/m1aMq9W-jDo?si=JiQ88Oy6jgBboTdn',
+   steps:['Stand and push your knees forward over your toes &mdash; this is the defining position.','Hold a wall or pole lightly for balance if needed.','Maintaining the knees-forward position, rise up onto your toes.','Lower slowly back down. Knees stay forward the whole time.','25 reps. Never let the knee drift back.'],
+   tip:'The knee-forward position loads the calf and Achilles in a lengthened state &mdash; this is what separates a KOT calf raise from a regular one.'},
+  {id:'patrick',name:'Patrick step',detail:'25 reps/side &middot; 1&ndash;3 sets',sets:3,timer:0,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=lTktLtISKek&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=14',
+   steps:['Stand on one foot on a low step or bumper plate.','Bend the standing knee and slowly lower the other foot toward the ground.','Let the descending heel lightly tap the floor, then drive back up.','Knee of standing leg tracks forward over toes throughout.','25 reps per side. Do up to 3 sets if this is a weak point.'],
+   tip:'Start with bodyweight only. Directly strengthens the patellar tendon and quad-to-shin connection.'},
+  {id:'atg',name:'ATG split squat',detail:'5 sets &times; 5 reps/side &middot; 30s breaks',sets:5,timer:0,brk:30,opt:false,
+   url:'https://www.youtube.com/watch?v=WHHI9l8Zp40&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=5',
+   steps:['Split stance: front foot flat, back foot on toes or elevated on a bench.','Lower slowly until the front knee nearly touches the floor &mdash; full depth.','Keep torso upright and front heel flat on the ground throughout.','Drive through the front foot to return to standing.','5 reps per side, 5 sets. Rest 30 seconds between sets.'],
+   tip:'ATG = Ass to Grass. Start with bodyweight or hold a plate in front for counterbalance. Full depth is everything.'},
+  {id:'kot_squat',name:'KOT squat',detail:'5 sets &times; 5 reps &middot; max 30s breaks',sets:5,timer:0,brk:30,opt:true,
+   url:'https://www.youtube.com/watch?v=cDobK6aHQOs&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=7',
+   steps:['Stand facing a wall, 10&ndash;15cm away, feet shoulder-width apart.','Push both knees forward until they nearly touch the wall.','Keeping knees forward, squat down as deep as possible.','Aim for thighs past parallel.','Drive back up, knees forward throughout. 5 sets of 5, max 30s rest.'],
+   tip:'OPTIONAL. The wall guides your knee path &mdash; not something to lean on. Great for quad and patellar weakness.'},
+  {id:'elephant',name:'Elephant walk',detail:'36 reps/side',sets:1,timer:0,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=cxGfrD9_Uzs&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=15',
+   steps:['Stand tall and hinge forward at the hips, hands reaching toward the floor.','Keep one leg straight while driving the opposite knee forward and up.','Alternate legs in a slow walking motion.','Each rep = one knee drives up while the other leg stays straight.','36 reps per side (72 total alternating movements).'],
+   tip:'Dynamically stretches hamstrings while building hip flexor strength and coordination simultaneously.'},
+  {id:'lsit',name:'L-sit',detail:'60s hold &middot; 1&ndash;3 sets &middot; 1&ndash;2 min breaks',sets:3,timer:60,brk:90,opt:false,
+   url:'https://www.youtube.com/watch?v=i8LsLLU8yoI&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=16',
+   steps:['Sit on the floor, legs extended straight in front.','Place hands flat beside hips, fingers pointing forward.','Press into the ground and lift your entire body off the floor.','Hold with legs as straight and horizontal as possible &mdash; the L shape.','Hold 60 seconds. Tuck knees if needed and build toward straight legs.'],
+   tip:'Start tucked and progress to straight legs over the 12 weeks. Builds hip flexor and core strength that directly supports knee health.'},
+  {id:'couch',name:'Couch stretch',detail:'60s/side &middot; 1&ndash;3 sets',sets:3,timer:60,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=Jay0Sd2exg0&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=17',
+   steps:['Kneel facing away from a wall. Place one shin and foot up the wall behind you.','Step other foot forward into a lunge &mdash; front shin vertical.','Drive hips forward and down for a deep hip flexor stretch on the back leg.','Keep torso upright &mdash; resist leaning forward.','Squeeze the glute of the back leg to deepen. Hold 60s per side.'],
+   tip:'One of the most important stretches in the program. Tight hip flexors directly strain the knee. Do this every day if possible.'},
+  {id:'piri',name:'Piriformis stretch',detail:'2 sets &times; 90s/side',sets:2,timer:90,brk:0,opt:false,
+   url:'https://www.youtube.com/watch?v=z64a5iOGXk0&list=PLqdvaeihpgIlYxSZtLxLA4TEIVnmWmcJZ&index=18',
+   steps:['Lie on your back, both knees bent, feet flat on the floor.','Cross one ankle over the opposite knee in a figure-4 position.','Gently pull the uncrossed leg toward your chest until you feel the stretch in the outer glute.','Or: sit upright, cross ankle over opposite thigh, lean forward gently.','Hold 90 seconds per side. Breathe deeply and let the muscle release.'],
+   tip:'Releases the piriformis and sciatic nerve area. Reduces hip and lower back tightness that feeds directly into knee problems.'},
+];
+
+let state={},curWeek=1,curDay=0,openEx=null;
+const timers={},brkT={};
+
+// iOS banner logic
+function isIOS(){return/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
+function isStandalone(){return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;}
+function showBanner(){
+  if(isIOS()&&!isStandalone()&&!localStorage.getItem('kot_banner_dismissed')){
+    document.getElementById('ios-banner').classList.add('show');
+  }
+}
+function dismissBanner(){
+  document.getElementById('ios-banner').classList.remove('show');
+  localStorage.setItem('kot_banner_dismissed','1');
+}
+
+function load(){try{const s=localStorage.getItem(SK);if(s)state=JSON.parse(s);}catch(e){}}
+function save(){try{localStorage.setItem(SK,JSON.stringify(state));}catch(e){}}
+function k(w,d){return'w'+w+'d'+d;}
+function ds(w,d){if(!state[k(w,d)])state[k(w,d)]={};return state[k(w,d)];}
+function exDone(w,d,id){return!!(ds(w,d)[id]&&ds(w,d)[id].done);}
+function setDn(w,d,id,i){return!!(ds(w,d)[id]&&ds(w,d)[id].sets&&ds(w,d)[id].sets[i]);}
+function allDone(w,d){return EX.filter(e=>!e.opt).every(e=>exDone(w,d,e.id));}
+function totS(){let t=0;for(let w=1;w<=WEEKS;w++)for(let d=0;d<3;d++)if(allDone(w,d))t++;return t;}
+function totW(){let t=0;for(let w=1;w<=WEEKS;w++)if([0,1,2].every(d=>allDone(w,d)))t++;return t;}
+function wkP(w){return[0,1,2].filter(d=>allDone(w,d)).length;}
+function fmt(s){const m=Math.floor(s/60);const ss=s%60;return m>0?m+':'+String(ss).padStart(2,'0'):s+'s';}
+
+function clrT(id){if(timers[id]){clearInterval(timers[id]);delete timers[id];}}
+function clrB(id){if(brkT[id]){clearInterval(brkT[id]);delete brkT[id];}}
+
+window.resetT=function(exId,sec){
+  clrT(exId);
+  const d=document.getElementById('td_'+exId);
+  const r=document.getElementById('tr_'+exId);
+  if(d){d.textContent=fmt(sec);d.className='tdisp';}
+  if(r)r.style.strokeDashoffset='0';
+};
+
+window.startT=function(exId,sec){
+  clrT(exId);
+  let rem=sec;
+  const circ=2*Math.PI*20;
+  function tick(){
+    const d=document.getElementById('td_'+exId);
+    const r=document.getElementById('tr_'+exId);
+    if(!d){clrT(exId);return;}
+    if(rem<=0){
+      d.textContent='Done!';d.className='tdisp fin';
+      if(r)r.style.strokeDashoffset=circ.toFixed(1);
+      clrT(exId);return;
+    }
+    d.textContent=fmt(rem);d.className='tdisp run';
+    if(r)r.style.strokeDashoffset=(circ*(1-rem/sec)).toFixed(2);
+    rem--;
+  }
+  tick();
+  timers[exId]=setInterval(tick,1000);
+};
+
+window.startB=function(exId,sec){
+  clrB(exId);
+  let rem=sec;
+  function tick(){
+    const el=document.getElementById('brk_'+exId);
+    if(!el){clrB(exId);return;}
+    el.textContent=rem>0?'Rest: '+fmt(rem):'Rest done — go!';
+    if(rem<=0){clrB(exId);return;}
+    rem--;
+  }
+  tick();
+  brkT[exId]=setInterval(tick,1000);
+};
+
+window.togEx=function(exId){
+  const d=ds(curWeek,curDay);
+  if(!d[exId])d[exId]={done:false,sets:{}};
+  d[exId].done=!d[exId].done;
+  if(!d[exId].done)d[exId].sets={};
+  save();render();
+};
+
+window.togSet=function(exId,i){
+  const d=ds(curWeek,curDay);
+  if(!d[exId])d[exId]={done:false,sets:{}};
+  d[exId].sets=d[exId].sets||{};
+  d[exId].sets[i]=!d[exId].sets[i];
+  if(Object.values(d[exId].sets).some(Boolean))d[exId].done=true;
+  save();render();
+};
+
+window.togOpen=function(exId){openEx=openEx===exId?null:exId;renderWA();};
+
+function buildPanel(ex){
+  const circ=(2*Math.PI*20).toFixed(2);
+  const done=exDone(curWeek,curDay,ex.id);
+  let h='<div class="panel">';
+  h+='<div class="instrbox"><div class="ititle">&#9776; How to do it</div><ol class="steps">';
+  ex.steps.forEach((s,i)=>{h+='<li data-n="'+(i+1)+'">'+s+'</li>';});
+  h+='</ol>';
+  if(ex.tip)h+='<div class="tip">&#128161; '+ex.tip+'</div>';
+  h+='</div>';
+  h+='<a class="ex-link" href="'+ex.url+'" target="_blank">&#9654; Watch on YouTube</a><br>';
+  if(ex.sets>1){
+    h+='<div class="srow">';
+    for(let i=0;i<ex.sets;i++){
+      const sd=setDn(curWeek,curDay,ex.id,i);
+      h+='<button class="sbtn '+(sd?'sdone':'')+'" onclick="togSet(\''+ex.id+'\','+i+')">Set '+(i+1)+(sd?' ✓':'')+'</button>';
+    }
+    h+='</div>';
+  }
+  if(ex.timer>0){
+    h+='<div class="timer-section"><div class="timer-lbl">&#9201; Timer</div>';
+    h+='<div class="trow">';
+    h+='<div class="tring"><svg width="56" height="56" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="#ddd" stroke-width="3.5"/><circle id="tr_'+ex.id+'" cx="24" cy="24" r="20" fill="none" stroke="#185FA5" stroke-width="3.5" stroke-dasharray="'+circ+'" stroke-dashoffset="0" style="transition:stroke-dashoffset .9s linear"/></svg></div>';
+    h+='<div id="td_'+ex.id+'" class="tdisp">'+fmt(ex.timer)+'</div>';
+    h+='<div class="tctrl">';
+    h+='<button class="tbtn tgo" onclick="startT(\''+ex.id+'\','+ex.timer+')">&#9654; Start</button>';
+    h+='<button class="tbtn" onclick="resetT(\''+ex.id+'\','+ex.timer+')">&#8635; Reset</button>';
+    h+='</div></div></div>';
+  }
+  if(ex.brk>0){
+    h+='<div class="bbar">&#9201; <span class="bbar-txt" id="brk_'+ex.id+'">'+ex.brk+'s rest between sets</span>';
+    h+='<button class="tbtn" style="padding:7px 12px;font-size:12px;margin-left:auto" onclick="startB(\''+ex.id+'\','+ex.brk+')">&#9654; Start rest</button></div>';
+  }
+  const mk=exDone(curWeek,curDay,ex.id);
+  h+='<button class="mkbtn '+(mk?'mkon':'')+'" onclick="togEx(\''+ex.id+'\')">'+(mk?'&#10007; Mark incomplete':'&#10003; Mark complete')+'</button>';
+  h+='</div>';
+  return h;
+}
+
+function renderWA(){
+  const area=document.getElementById('WA');area.innerHTML='';
+  EX.forEach((ex,idx)=>{
+    const done=exDone(curWeek,curDay,ex.id);
+    const isOpen=openEx===ex.id;
+    const div=document.createElement('div');
+    div.className='ex'+(done?' edone':'')+(ex.opt?' eopt':'')+(isOpen?' open':'');
+    div.innerHTML='<div class="exh" onclick="togOpen(\''+ex.id+'\')">'
+      +'<div class="exck">'+(done?'&#10003;':(idx+1))+'</div>'
+      +'<div class="exb"><div class="exname">'+ex.name+'</div><div class="exdet">'+ex.detail+'</div></div>'
+      +'<div class="exr"><span class="badge '+(ex.opt?'optb':'')+'">'+( ex.opt?'optional':'step '+(idx+1))+'</span>'
+      +'<span class="arr">&#8964;</span></div>'
+      +'</div>'
+      +(isOpen?buildPanel(ex):'');
+    area.appendChild(div);
+  });
+  const allReq=EX.filter(e=>!e.opt).every(e=>exDone(curWeek,curDay,e.id));
+  const btn=document.createElement('button');
+  btn.className='fin-btn';btn.disabled=!allReq;
+  btn.textContent=allReq?'✓ Session complete!':'Complete all required steps to finish';
+  area.appendChild(btn);
+}
+
+function renderStats(){
+  const sess=totS();const pct=Math.round((sess/(WEEKS*3))*100);
+  document.getElementById('SA').innerHTML='<div class="stat"><div class="sn">'+sess+'</div><div class="sl">Sessions done</div></div><div class="stat"><div class="sn">'+(WEEKS*3-sess)+'</div><div class="sl">Left</div></div><div class="stat"><div class="sn">'+totW()+'</div><div class="sl">Weeks complete</div></div><div class="stat"><div class="sn">'+pct+'%</div><div class="sl">Progress</div></div>';
+  document.getElementById('PB').style.width=pct+'%';
+}
+
+function renderWG(){
+  const el=document.getElementById('WG');el.innerHTML='';
+  for(let w=1;w<=WEEKS;w++){
+    const prog=wkP(w),isDone=prog===3,isAct=w===curWeek;
+    const div=document.createElement('div');
+    div.className='wb'+(isAct?' active':'')+(isDone&&!isAct?' wdone':'');
+    div.innerHTML='<div class="wl">Wk '+w+'</div><div class="pips">'+[0,1,2].map(d=>'<div class="pip '+(allDone(w,d)?'done':'')+'"></div>').join('')+'</div>';
+    div.onclick=(ww=>()=>{curWeek=ww;curDay=0;openEx=null;render();})(w);
+    el.appendChild(div);
+  }
+}
+
+function renderDT(){
+  const el=document.getElementById('DT');el.innerHTML='';
+  ['Day A','Day B','Day C'].forEach((label,i)=>{
+    const done=allDone(curWeek,i);
+    const div=document.createElement('div');
+    div.className='dt'+(i===curDay?' active':'')+(done&&i!==curDay?' ddone':'');
+    div.textContent=label+(done?' ✓':'');
+    div.onclick=(ii=>()=>{curDay=ii;openEx=null;renderDT();renderWA();})(i);
+    el.appendChild(div);
+  });
+}
+
+function render(){renderStats();renderWG();renderDT();renderWA();}
+
+window.resetAll=function(){
+  if(!confirm('Reset all progress? This cannot be undone.'))return;
+  state={};save();curWeek=1;curDay=0;openEx=null;
+  Object.keys(timers).forEach(id=>clrT(id));
+  Object.keys(brkT).forEach(id=>clrB(id));
+  render();
+};
+
+load();render();showBanner();
+</script>
+</body>
+</html>
